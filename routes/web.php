@@ -26,6 +26,10 @@ Route::get('/customers', function () {
     return view('pos.customers');
 })->name('customers');
 
+Route::get('/staff', function () {
+    return view('pos.staff');
+})->name('staff');
+
 Route::get('/settings', function () {
     return view('pos.settings');
 })->name('settings');

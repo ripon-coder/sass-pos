@@ -211,11 +211,11 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3" id="product-grid">
                 <template x-for="(product, idx) in filteredProducts" :key="product.id">
                     <button
-                        @click="addToCart(product)"
+                        @click="product.variants ? openVariantModal(product) : addToCart(product)"
                         :id="'prod-' + product.id"
-                        :disabled="product.stock === 0"
+                        :disabled="product.stock === 0 && !product.variants"
                         class="group relative flex flex-col bg-white border border-slate-200 rounded-xl text-left transition-all duration-150 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                        :class="product.stock === 0
+                        :class="(product.stock === 0 && !product.variants)
                             ? 'opacity-50 cursor-not-allowed'
                             : 'hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 active:scale-95 active:shadow-none cursor-pointer'"
                     >
@@ -223,24 +223,33 @@
                         <div class="aspect-square bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center text-3xl relative overflow-hidden">
                             <span x-text="product.emoji" class="transition-transform duration-150 group-hover:scale-110"></span>
 
-                            {{-- Low stock dot --}}
-                            <div x-show="product.stock > 0 && product.stock <= 5"
+                            {{-- Variant badge --}}
+                            <template x-if="product.variants">
+                                <div class="absolute top-1.5 left-1.5 flex items-center gap-0.5 bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow">
+                                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                                    <span x-text="product.variants.length + ' vars'"></span>
+                                </div>
+                            </template>
+
+                            {{-- Low stock dot (simple products) --}}
+                            <div x-show="!product.variants && product.stock > 0 && product.stock <= 5"
                                 class="absolute top-1.5 right-1.5 flex items-center gap-1 bg-amber-100 border border-amber-300 text-amber-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
                                 <span x-text="product.stock + ' left'"></span>
                             </div>
 
-                            {{-- Out of stock overlay --}}
-                            <div x-show="product.stock === 0"
+                            {{-- Out of stock overlay (simple only) --}}
+                            <div x-show="!product.variants && product.stock === 0"
                                 class="absolute inset-0 bg-white/70 flex items-center justify-center">
                                 <span class="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200 shadow-sm">Out of Stock</span>
                             </div>
 
-                            {{-- Add overlay on hover --}}
-                            <div x-show="product.stock > 0"
-                                class="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/10 transition-all duration-150 flex items-center justify-center">
-                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-150">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            {{-- Hover overlay --}}
+                            <div class="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/10 transition-all duration-150 flex items-center justify-center">
+                                <div class="w-8 h-8 rounded-full text-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-150"
+                                    :class="product.variants ? 'bg-violet-600' : 'bg-blue-600'">
+                                    <svg x-show="!product.variants" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                    <svg x-show="product.variants"  class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
                                 </div>
                             </div>
                         </div>
@@ -249,15 +258,23 @@
                         <div class="p-2.5 flex-1">
                             <p class="text-xs font-semibold text-slate-700 line-clamp-2 leading-snug" x-text="product.name"></p>
                             <div class="flex items-center justify-between mt-1.5">
-                                <p class="text-sm font-bold text-blue-600" x-text="'$' + product.price.toFixed(2)"></p>
-                                <span class="text-[10px] text-slate-400 font-medium" x-text="product.stock > 0 ? product.stock + ' stk' : ''"></span>
+                                <p class="text-sm font-bold text-blue-600"
+                                    x-text="product.variants
+                                        ? 'From $' + Math.min(...product.variants.map(v=>v.price)).toFixed(2)
+                                        : '$' + product.price.toFixed(2)"
+                                ></p>
+                                <span class="text-[10px] font-medium"
+                                    :class="product.variants ? 'text-violet-500' : 'text-slate-400'"
+                                    x-text="product.variants ? product.variants.length + ' options' : (product.stock > 0 ? product.stock + ' stk' : '')"
+                                ></span>
                             </div>
                         </div>
 
-                        {{-- In-cart indicator --}}
-                        <template x-if="cart.find(i => i.id === product.id)">
-                            <div class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shadow"
-                                x-text="cart.find(i => i.id === product.id)?.qty">
+                        {{-- In-cart indicator (variant products show total qty) --}}
+                        <template x-if="cart.filter(i => i.productId === product.id).length > 0 || cart.find(i => i.id === product.id)">
+                            <div class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center shadow"
+                                :class="product.variants ? 'bg-violet-600' : 'bg-blue-600'"
+                                x-text="cart.filter(i => i.productId === product.id || i.id === product.id).reduce((s,i)=>s+i.qty,0)">
                             </div>
                         </template>
                     </button>
@@ -351,7 +368,7 @@
 
             {{-- Cart Items List --}}
             <div class="divide-y divide-slate-50" x-show="cart.length > 0">
-                <template x-for="item in cart" :key="item.id">
+                <template x-for="item in cart" :key="item.cartKey">
                     <div class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50/60 transition-colors group/item">
 
                         {{-- Product emoji thumb --}}
@@ -360,10 +377,19 @@
                         {{-- Item details --}}
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-semibold text-slate-800 truncate leading-tight" x-text="item.name"></p>
+
+                            {{-- Variant label --}}
+                            <template x-if="item.variantLabel">
+                                <p class="inline-flex items-center gap-1 text-[10px] font-semibold text-violet-700 bg-violet-50 border border-violet-200 rounded-md px-1.5 py-0.5 mt-0.5">
+                                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                                    <span x-text="item.variantLabel"></span>
+                                </p>
+                            </template>
+
                             <p class="text-[11px] text-slate-400 mt-0.5" x-text="'$' + item.price.toFixed(2) + ' each'"></p>
 
-                            {{-- Stock warning --}}
-                            <div x-show="item.qty >= (allProducts.find(p=>p.id===item.id)?.stock || 0)"
+                            {{-- Stock warning (variant-aware) --}}
+                            <div x-show="item.qty >= item.maxStock"
                                 class="text-[10px] text-amber-600 font-medium flex items-center gap-1 mt-0.5">
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
                                 Max stock reached
@@ -378,7 +404,7 @@
 
                                 {{-- Editable qty input --}}
                                 <input type="number" min="1"
-                                    :max="allProducts.find(p=>p.id===item.id)?.stock || 99"
+                                    :max="item.maxStock || 99"
                                     x-model.number="item.qty"
                                     @change="clampQty(item)"
                                     @click.stop
@@ -396,7 +422,7 @@
                         <div class="text-right flex-shrink-0">
                             <p class="text-sm font-bold text-slate-800" x-text="'$' + (item.price * item.qty).toFixed(2)"></p>
                             <button @click.stop="removeFromCart(item)"
-                                class="mt-1 text-slate-200 hover:text-red-400 transition-colors opacity-0 group-hover/item:opacity-100">
+                                class="mt-1 text-slate-200 hover:text-red-400 transition-colors opacity-0 group-hover/item:opacity-100" :id="'remove-item-' + item.cartKey">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
@@ -704,57 +730,421 @@
 {{-- ================================================================ --}}
 <div x-show="quickAddModal.open" class="fixed inset-0 z-[100] flex items-center justify-center p-4" x-cloak>
     <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" @click="quickAddModal.open = false"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm"
-        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
         x-transition:leave="transition ease-in duration-150"
         id="quick-add-modal">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+
+        {{-- Header --}}
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
             <div>
-                <h3 class="text-sm font-bold text-slate-800">Quick Add Product</h3>
-                <p class="text-xs text-slate-400 mt-0.5">Add a product not in the system</p>
+                <h3 class="text-sm font-bold text-slate-800">Add Product</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Add a product not yet in the system</p>
             </div>
             <button @click="quickAddModal.open = false" class="btn btn-ghost btn-icon btn-sm text-slate-400">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-        <form @submit.prevent="saveQuickProduct()" class="p-5 space-y-4">
-            <div>
-                <label class="form-label">Product Name <span class="text-red-500">*</span></label>
-                <input type="text" x-model="quickAddModal.form.name" class="form-input"
-                    placeholder="Wireless Mouse" required x-ref="quickAddName">
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="form-label">Price ($) <span class="text-red-500">*</span></label>
-                    <input type="number" x-model.number="quickAddModal.form.price" class="form-input"
-                        placeholder="0.00" step="0.01" min="0.01" required>
+
+        {{-- Scrollable body --}}
+        <div class="overflow-y-auto flex-1">
+            <form @submit.prevent="saveQuickProduct()" class="p-5 space-y-4">
+
+                {{-- ── BASIC FIELDS ── --}}
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="form-label">Product Name <span class="text-red-500">*</span></label>
+                        <input type="text" x-model="quickAddModal.form.name" class="form-input"
+                            placeholder="e.g. Classic T-Shirt" required x-ref="quickAddName">
+                    </div>
+                    <div>
+                        <label class="form-label">Category</label>
+                        <select x-model="quickAddModal.form.category" class="form-input form-select">
+                            <template x-for="cat in categories" :key="cat">
+                                <option :value="cat" x-text="cat"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Emoji / Icon</label>
+                        <input type="text" x-model="quickAddModal.form.emoji" class="form-input text-xl text-center"
+                            placeholder="📦" maxlength="2">
+                    </div>
                 </div>
-                <div>
-                    <label class="form-label">Stock</label>
-                    <input type="number" x-model.number="quickAddModal.form.stock" class="form-input"
-                        placeholder="1" min="1">
+
+                {{-- ── HAS VARIANTS TOGGLE ── --}}
+                <div class="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">This product has variants</p>
+                            <p class="text-xs text-slate-400">e.g. Size, Color — generates a variant table</p>
+                        </div>
+                    </div>
+                    <button type="button"
+                        @click="quickAddModal.hasVariants = !quickAddModal.hasVariants; quickAddModal.generatedVariants = []"
+                        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+                        :class="quickAddModal.hasVariants ? 'bg-violet-600' : 'bg-slate-200'"
+                        id="has-variants-toggle">
+                        <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200"
+                            :class="quickAddModal.hasVariants ? 'translate-x-5' : 'translate-x-0'"></span>
+                    </button>
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="form-label">Category</label>
-                    <select x-model="quickAddModal.form.category" class="form-input form-select">
-                        <template x-for="cat in categories" :key="cat">
-                            <option :value="cat" x-text="cat"></option>
+
+                {{-- ── SIMPLE PRODUCT: price + stock ── --}}
+                <div x-show="!quickAddModal.hasVariants" class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">Base Price ($) <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                            <input type="number" x-model.number="quickAddModal.form.price" class="form-input pl-6"
+                                placeholder="0.00" step="0.01" min="0.01"
+                                :required="!quickAddModal.hasVariants">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Stock Qty</label>
+                        <input type="number" x-model.number="quickAddModal.form.stock" class="form-input"
+                            placeholder="10" min="0">
+                    </div>
+                </div>
+
+                {{-- ══════════════════════════════════════════════ --}}
+                {{-- ── VARIANT BUILDER ── --}}
+                {{-- ══════════════════════════════════════════════ --}}
+                <div x-show="quickAddModal.hasVariants" class="space-y-4">
+
+                    {{-- Attribute rows --}}
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs font-bold text-slate-600 uppercase tracking-wide">Attributes</p>
+                            <button type="button"
+                                @click="quickAddModal.attributes.push({ name: '', values: '' })"
+                                class="inline-flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-800 transition-colors"
+                                id="add-attribute-btn">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                Add Attribute
+                            </button>
+                        </div>
+
+                        <template x-for="(attr, i) in quickAddModal.attributes" :key="i">
+                            <div class="flex items-center gap-2 group">
+                                {{-- Attribute name --}}
+                                <input type="text" x-model="attr.name"
+                                    class="form-input w-32 flex-shrink-0 text-sm"
+                                    placeholder="e.g. Color"
+                                    :id="'attr-name-' + i">
+
+                                {{-- Values --}}
+                                <div class="relative flex-1">
+                                    <input type="text" x-model="attr.values"
+                                        class="form-input w-full text-sm pr-8"
+                                        placeholder="Red, Blue, Green (comma separated)"
+                                        :id="'attr-values-' + i">
+                                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-mono pointer-events-none">CSV</span>
+                                </div>
+
+                                {{-- Remove row --}}
+                                <button type="button"
+                                    @click="quickAddModal.attributes.splice(i, 1); quickAddModal.generatedVariants = []"
+                                    class="btn btn-ghost btn-icon btn-sm text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                    :id="'remove-attr-' + i">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
                         </template>
-                    </select>
+
+                        {{-- Generate button --}}
+                        <button type="button"
+                            @click="generateVariants()"
+                            :disabled="quickAddModal.attributes.length === 0 || quickAddModal.attributes.some(a => !a.name.trim() || !a.values.trim())"
+                            class="w-full py-2 text-xs font-bold rounded-xl border-2 border-dashed transition-all duration-150
+                                disabled:opacity-40 disabled:cursor-not-allowed
+                                border-violet-300 text-violet-600 hover:bg-violet-50 hover:border-violet-400"
+                            id="generate-variants-btn">
+                            <span class="flex items-center justify-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                                Generate Variants
+                                <template x-if="quickAddModal.generatedVariants.length > 0">
+                                    <span class="bg-violet-100 text-violet-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                                        x-text="quickAddModal.generatedVariants.length + ' variants'"></span>
+                                </template>
+                            </span>
+                        </button>
+                    </div>
+
+                    {{-- ── Variant Table ── --}}
+                    <div x-show="quickAddModal.generatedVariants.length > 0"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="rounded-xl border border-slate-200 overflow-hidden">
+
+                        {{-- Table header --}}
+                        <div class="grid grid-cols-12 gap-2 px-3 py-2 bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                            <div class="col-span-4">Variant</div>
+                            <div class="col-span-3">SKU</div>
+                            <div class="col-span-2 text-right">Price ($)</div>
+                            <div class="col-span-2 text-right">Stock</div>
+                            <div class="col-span-1"></div>
+                        </div>
+
+                        {{-- Variant rows --}}
+                        <div class="divide-y divide-slate-50 max-h-52 overflow-y-auto">
+                            <template x-for="(v, vi) in quickAddModal.generatedVariants" :key="vi">
+                                <div class="grid grid-cols-12 gap-2 px-3 py-2 items-center hover:bg-slate-50/60 transition-colors group">
+
+                                    {{-- Label --}}
+                                    <div class="col-span-4">
+                                        <span class="text-xs font-semibold text-slate-700 leading-tight" x-text="v.label"></span>
+                                    </div>
+
+                                    {{-- SKU --}}
+                                    <div class="col-span-3">
+                                        <input type="text" x-model="v.sku"
+                                            class="w-full text-[11px] font-mono bg-white border border-slate-200 rounded-lg px-2 py-1 focus:ring-1 focus:ring-violet-400 focus:border-violet-400 focus:outline-none"
+                                            :placeholder="'SKU-' + (vi + 1)"
+                                            :id="'v-sku-' + vi">
+                                    </div>
+
+                                    {{-- Price --}}
+                                    <div class="col-span-2">
+                                        <input type="number" x-model.number="v.price"
+                                            class="w-full text-[11px] bg-white border border-slate-200 rounded-lg px-2 py-1 text-right focus:ring-1 focus:ring-violet-400 focus:border-violet-400 focus:outline-none"
+                                            min="0" step="0.01"
+                                            :id="'v-price-' + vi">
+                                    </div>
+
+                                    {{-- Stock --}}
+                                    <div class="col-span-2">
+                                        <input type="number" x-model.number="v.stock"
+                                            class="w-full text-[11px] bg-white border border-slate-200 rounded-lg px-2 py-1 text-right focus:ring-1 focus:ring-violet-400 focus:border-violet-400 focus:outline-none"
+                                            min="0"
+                                            :id="'v-stock-' + vi">
+                                    </div>
+
+                                    {{-- Remove variant --}}
+                                    <div class="col-span-1 flex justify-end">
+                                        <button type="button"
+                                            @click="quickAddModal.generatedVariants.splice(vi, 1)"
+                                            class="text-slate-200 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                            :id="'remove-v-' + vi">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- Summary row --}}
+                        <div class="px-3 py-2 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+                            <p class="text-[11px] text-slate-400">
+                                <span x-text="quickAddModal.generatedVariants.length"></span> variants total ·
+                                <span x-text="quickAddModal.generatedVariants.filter(v=>v.stock>0).length"></span> in stock
+                            </p>
+                            <button type="button"
+                                @click="quickAddModal.generatedVariants.push({ label: 'Custom', sku: '', price: quickAddModal.form.price || 0, stock: 10 })"
+                                class="text-[11px] font-semibold text-violet-600 hover:text-violet-800 transition-colors">
+                                + Add Row
+                            </button>
+                        </div>
+                    </div>
                 </div>
+                {{-- ── End variant builder ── --}}
+
+                {{-- ── ACTIONS ── --}}
+                <div class="flex gap-3 pt-1">
+                    <button type="button" @click="quickAddModal.open = false"
+                        class="flex-1 btn btn-secondary">Cancel</button>
+                    <button type="submit"
+                        :disabled="quickAddModal.hasVariants && quickAddModal.generatedVariants.length === 0"
+                        class="flex-1 btn btn-primary disabled:opacity-40 disabled:cursor-not-allowed gap-1.5"
+                        id="save-product-btn">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        <span x-text="quickAddModal.hasVariants ? 'Save Product & Variants' : 'Add & Sell'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- ================================================================ --}}
+{{-- VARIANT SELECTOR MODAL                                           --}}
+{{-- ================================================================ --}}
+<div x-show="variantModal.open"
+    class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4"
+    @keydown.arrow-down.prevent="handleVariantKey('down')"
+    @keydown.arrow-up.prevent="handleVariantKey('up')"
+    @keydown.enter.prevent="handleVariantKey('enter')"
+    @keydown.arrow-right.prevent="handleVariantKey('down')"
+    @keydown.arrow-left.prevent="handleVariantKey('up')"
+    x-cloak>
+
+    {{-- Backdrop --}}
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" @click="variantModal.open = false"></div>
+
+    {{-- Panel --}}
+    <div class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-4"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0 translate-y-2"
+        id="variant-modal"
+        x-ref="variantPanel"
+        tabindex="-1"
+    >
+        {{-- ── HEADER ── --}}
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                {{-- Animated emoji thumb --}}
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200 flex items-center justify-center text-2xl flex-shrink-0 shadow-sm"
+                    :class="variantModal.lastAdded ? 'scale-110' : 'scale-100'"
+                    style="transition: transform 0.15s ease"
+                    x-text="variantModal.product?.emoji"></div>
                 <div>
-                    <label class="form-label">Emoji</label>
-                    <input type="text" x-model="quickAddModal.form.emoji" class="form-input text-xl text-center"
-                        placeholder="📦" maxlength="2">
+                    <h3 class="text-sm font-bold text-slate-800" x-text="variantModal.product?.name"></h3>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <p class="text-xs text-slate-400">Pick a variant · click or use arrow keys</p>
+                        <kbd class="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-mono font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded px-1 py-0.5">
+                            ↑↓ &nbsp; ↵
+                        </kbd>
+                    </div>
                 </div>
             </div>
-            <div class="flex gap-3 pt-1">
-                <button type="button" @click="quickAddModal.open = false" class="flex-1 btn btn-secondary">Cancel</button>
-                <button type="submit" class="flex-1 btn btn-primary">Add & Sell</button>
+            <button @click="variantModal.open = false"
+                class="btn btn-ghost btn-icon btn-sm text-slate-400 hover:text-slate-700"
+                title="Close (Esc)">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        {{-- ── AXIS TAGS (Color / Size) ── --}}
+        <div class="px-5 pt-3.5 pb-0 flex flex-wrap items-center gap-1.5 flex-shrink-0"
+            x-show="variantModal.product?.variantAxes?.length">
+            <span class="text-[11px] font-medium text-slate-400 mr-0.5">Filters:</span>
+            <template x-for="axis in (variantModal.product?.variantAxes || [])" :key="axis">
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5">
+                    <span x-text="axis"></span>
+                </span>
+            </template>
+            {{-- Available count --}}
+            <span class="ml-auto text-[11px] text-slate-400">
+                <span x-text="(variantModal.product?.variants || []).filter(v=>v.stock>0).length"></span>
+                &nbsp;of&nbsp;
+                <span x-text="(variantModal.product?.variants || []).length"></span>
+                &nbsp;in stock
+            </span>
+        </div>
+
+        {{-- ── VARIANT GRID ── --}}
+        <div class="overflow-y-auto p-4 flex-1" x-ref="variantScroll">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <template x-for="(v, idx) in (variantModal.product?.variants || [])" :key="v.sku">
+                    <button
+                        @click="selectVariant(variantModal.product, v, idx)"
+                        :id="'variant-' + v.sku"
+                        :disabled="v.stock === 0"
+                        :title="v.stock === 0 ? 'Out of stock — cannot add' : v.label + ' · $' + v.price.toFixed(2)"
+                        class="relative group flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 text-left transition-all duration-100 focus:outline-none select-none"
+                        :class="[
+                            v.stock === 0
+                                ? 'border-slate-100 bg-slate-50/80 opacity-40 cursor-not-allowed'
+                                : 'bg-white cursor-pointer active:scale-95 active:brightness-95',
+                            v.stock > 0 && variantModal.focusedIdx === idx
+                                ? 'border-blue-500 shadow-md ring-2 ring-blue-400/30'
+                                : (v.stock > 0 ? 'border-slate-200 hover:border-blue-300 hover:shadow-sm' : ''),
+                            variantModal.lastAdded === v.sku
+                                ? 'bg-emerald-50 border-emerald-400'
+                                : ''
+                        ]"
+                        @mouseenter="v.stock > 0 && (variantModal.focusedIdx = idx)"
+                    >
+                        {{-- Color swatch row --}}
+                        <template x-if="v.color">
+                            <div class="w-full flex items-center gap-2">
+                                <div class="w-4 h-4 rounded-full border border-slate-200 shadow-sm flex-shrink-0"
+                                    :style="'background:' + v.colorHex"></div>
+                                <span class="text-xs font-bold text-slate-800 truncate" x-text="v.label"></span>
+                            </div>
+                        </template>
+
+                        {{-- Text-only label --}}
+                        <template x-if="!v.color">
+                            <span class="text-sm font-bold text-slate-800 leading-tight" x-text="v.label"></span>
+                        </template>
+
+                        {{-- SKU --}}
+                        <span class="text-[9px] font-mono text-slate-400 tracking-wide" x-text="v.sku"></span>
+
+                        {{-- Price row --}}
+                        <div class="w-full flex items-center justify-between mt-auto pt-1">
+                            <span class="text-sm font-black text-blue-600" x-text="'$' + v.price.toFixed(2)"></span>
+
+                            {{-- Low stock badge --}}
+                            <template x-if="v.stock > 0 && v.stock <= 5">
+                                <span class="text-[9px] font-bold text-amber-700 bg-amber-100 border border-amber-300 rounded-full px-1.5 py-0.5 leading-none"
+                                    x-text="v.stock + ' left'"></span>
+                            </template>
+
+                            {{-- Normal stock --}}
+                            <template x-if="v.stock > 5">
+                                <span class="text-[9px] font-medium text-slate-400" x-text="v.stock + ' stk'"></span>
+                            </template>
+
+                            {{-- Out of stock tooltip trigger --}}
+                            <template x-if="v.stock === 0">
+                                <span class="text-[9px] font-bold text-red-400 bg-red-50 border border-red-200 rounded-full px-1.5 py-0.5 leading-none">No stock</span>
+                            </template>
+                        </div>
+
+                        {{-- Keyboard-focused arrow indicator --}}
+                        <template x-if="variantModal.focusedIdx === idx && v.stock > 0">
+                            <div class="absolute top-2 left-2 w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                        </template>
+
+                        {{-- In-cart flash check --}}
+                        <template x-if="variantModal.lastAdded === v.sku">
+                            <div class="absolute inset-0 rounded-[10px] flex items-center justify-center bg-emerald-500/90 transition-all duration-200">
+                                <div class="flex flex-col items-center gap-1">
+                                    <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                    <span class="text-[10px] font-bold text-white">Added!</span>
+                                </div>
+                            </div>
+                        </template>
+
+                        {{-- Hover add icon (non-focused state) --}}
+                        <template x-if="v.stock > 0 && variantModal.lastAdded !== v.sku">
+                            <div class="absolute top-2 right-2 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shadow opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-100">
+                                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            </div>
+                        </template>
+
+                        {{-- Already-in-cart qty badge --}}
+                        <template x-if="cart.find(i => i.cartKey === (variantModal.product?.id + '-' + v.sku)) && variantModal.lastAdded !== v.sku">
+                            <div class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shadow px-1">
+                                <span x-text="cart.find(i => i.cartKey === (variantModal.product?.id + '-' + v.sku))?.qty"></span>
+                            </div>
+                        </template>
+                    </button>
+                </template>
             </div>
-        </form>
+        </div>
+
+        {{-- ── FOOTER ── --}}
+        <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/60 flex-shrink-0 rounded-b-2xl">
+            <div class="flex items-center gap-2 text-xs text-slate-400">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/></svg>
+                <span>Modal stays open for multi-add · <kbd class="font-mono font-bold bg-slate-200 rounded px-1">Esc</kbd> to close</span>
+            </div>
+            <button @click="variantModal.open = false" class="btn btn-secondary btn-sm">Done</button>
+        </div>
     </div>
 </div>
 
@@ -847,12 +1237,16 @@ function posScreen() {
         clearConfirm:    false,
 
         /* ── Modals ── */
+        variantModal: { open: false, product: null, focusedIdx: 0, lastAdded: null },
         paymentModal: {
             open: false, method: 'cash', cashTendered: 0,
             change: 0, cardRef: '', success: false, orderNo: null,
         },
         quickAddModal: {
             open: false,
+            hasVariants: false,
+            attributes: [{ name: 'Color', values: '' }, { name: 'Size', values: '' }],
+            generatedVariants: [],
             form: { name: '', price: 0, stock: 10, category: 'Accessories', emoji: '📦' },
         },
         addCustomerModal: {
@@ -862,8 +1256,9 @@ function posScreen() {
 
         /* ── Data ── */
         quickAmounts: [5, 10, 20, 50, 100],
-        categories: ['Electronics', 'Accessories', 'Cables', 'Peripherals'],
+        categories: ['Electronics', 'Accessories', 'Cables', 'Peripherals', 'Apparel'],
         allProducts: [
+            /* ── Simple products (no variants) ── */
             { id: 1,  name: 'Wireless Headphones',  price: 89.99,  stock: 12, category: 'Electronics',  barcode: 'WH001', emoji: '🎧' },
             { id: 2,  name: 'Mechanical Keyboard',   price: 129.00, stock: 8,  category: 'Peripherals',  barcode: 'MK002', emoji: '⌨️' },
             { id: 3,  name: 'USB-C Hub 7-in-1',      price: 49.99,  stock: 25, category: 'Accessories',  barcode: 'UH003', emoji: '🔌' },
@@ -876,6 +1271,51 @@ function posScreen() {
             { id: 10, name: 'Wireless Mouse',          price: 45.00,  stock: 15, category: 'Peripherals', barcode: 'WM010', emoji: '🖱️' },
             { id: 11, name: 'Power Bank 20000mAh',    price: 54.99,  stock: 9,  category: 'Electronics',  barcode: 'PB011', emoji: '🔋' },
             { id: 12, name: 'Phone Stand',             price: 19.99,  stock: 22, category: 'Accessories',  barcode: 'PS012', emoji: '📱' },
+
+            /* ── Variant products ── */
+            {
+                id: 101, name: 'Classic T-Shirt', category: 'Apparel', emoji: '👕', barcode: null,
+                price: 24.99,  /* base (used for calc only) */
+                stock: 999,    /* computed, not used for variants */
+                variantAxes: ['Color', 'Size'],
+                variants: [
+                    { sku:'TS-BLK-S',  label:'Black / S',   color:'Black', colorHex:'#1e293b', size:'S',  price:24.99, stock:10 },
+                    { sku:'TS-BLK-M',  label:'Black / M',   color:'Black', colorHex:'#1e293b', size:'M',  price:24.99, stock:0  },
+                    { sku:'TS-BLK-L',  label:'Black / L',   color:'Black', colorHex:'#1e293b', size:'L',  price:24.99, stock:3  },
+                    { sku:'TS-BLK-XL', label:'Black / XL',  color:'Black', colorHex:'#1e293b', size:'XL', price:24.99, stock:8  },
+                    { sku:'TS-WHT-S',  label:'White / S',   color:'White', colorHex:'#f1f5f9', size:'S',  price:24.99, stock:5  },
+                    { sku:'TS-WHT-M',  label:'White / M',   color:'White', colorHex:'#f1f5f9', size:'M',  price:24.99, stock:15 },
+                    { sku:'TS-WHT-L',  label:'White / L',   color:'White', colorHex:'#f1f5f9', size:'L',  price:24.99, stock:2  },
+                    { sku:'TS-RED-M',  label:'Red / M',     color:'Red',   colorHex:'#ef4444', size:'M',  price:26.99, stock:7  },
+                    { sku:'TS-RED-L',  label:'Red / L',     color:'Red',   colorHex:'#ef4444', size:'L',  price:26.99, stock:0  },
+                ],
+            },
+            {
+                id: 102, name: 'Running Sneakers', category: 'Apparel', emoji: '👟', barcode: null,
+                price: 79.99,
+                stock: 999,
+                variantAxes: ['Color', 'Size'],
+                variants: [
+                    { sku:'RN-BLU-40', label:'Blue / 40',   color:'Blue',  colorHex:'#3b82f6', size:'40', price:79.99, stock:4  },
+                    { sku:'RN-BLU-41', label:'Blue / 41',   color:'Blue',  colorHex:'#3b82f6', size:'41', price:79.99, stock:2  },
+                    { sku:'RN-BLU-42', label:'Blue / 42',   color:'Blue',  colorHex:'#3b82f6', size:'42', price:79.99, stock:0  },
+                    { sku:'RN-BLK-40', label:'Black / 40',  color:'Black', colorHex:'#1e293b', size:'40', price:84.99, stock:6  },
+                    { sku:'RN-BLK-41', label:'Black / 41',  color:'Black', colorHex:'#1e293b', size:'41', price:84.99, stock:1  },
+                    { sku:'RN-BLK-42', label:'Black / 42',  color:'Black', colorHex:'#1e293b', size:'42', price:84.99, stock:9  },
+                ],
+            },
+            {
+                id: 103, name: 'Tote Bag', category: 'Apparel', emoji: '👜', barcode: null,
+                price: 34.99,
+                stock: 999,
+                variantAxes: ['Color'],
+                variants: [
+                    { sku:'TB-NAT', label:'Natural',   color:'Natural', colorHex:'#d4a27f', price:34.99, stock:12 },
+                    { sku:'TB-BLK', label:'Black',     color:'Black',   colorHex:'#1e293b', price:34.99, stock:5  },
+                    { sku:'TB-OLV', label:'Olive',     color:'Olive',   colorHex:'#65a30d', price:36.99, stock:0  },
+                    { sku:'TB-NVY', label:'Navy',      color:'Navy',    colorHex:'#1e3a5f', price:36.99, stock:3  },
+                ],
+            },
         ],
         filteredProducts: [],
         customers: [
@@ -916,6 +1356,7 @@ function posScreen() {
             // Escape → clear cart prompt OR close modals
             if (e.key === 'Escape') {
                 if (this.paymentModal.open && !this.paymentModal.success) { this.paymentModal.open = false; return; }
+                if (this.variantModal.open)     { this.variantModal.open = false; return; }
                 if (this.quickAddModal.open)    { this.quickAddModal.open = false; return; }
                 if (this.addCustomerModal.open) { this.addCustomerModal.open = false; return; }
                 if (this.clearConfirm)          { this.clearConfirm = false; return; }
@@ -984,35 +1425,119 @@ function posScreen() {
         },
 
         /* ════════════════════════════════════════════════════════
+           VARIANT MODAL
+           ════════════════════════════════════════════════════════ */
+        openVariantModal(product) {
+            this.variantModal.product   = product;
+            this.variantModal.lastAdded = null;
+            /* Auto-focus first available variant */
+            const firstAvail = (product.variants || []).findIndex(v => v.stock > 0);
+            this.variantModal.focusedIdx = firstAvail >= 0 ? firstAvail : 0;
+            this.variantModal.open = true;
+            /* Focus the panel for keyboard events */
+            this.$nextTick(() => this.$refs.variantPanel?.focus());
+        },
+
+        selectVariant(product, variant, idx) {
+            if (variant.stock === 0) {
+                toast(variant.label + ' is out of stock', 'error', 1800);
+                return;
+            }
+            const cartKey = product.id + '-' + variant.sku;
+            const existing = this.cart.find(i => i.cartKey === cartKey);
+            if (existing) {
+                if (existing.qty >= variant.stock) {
+                    toast('Max stock for ' + variant.label, 'warning', 1800);
+                    return;
+                }
+                existing.qty++;
+            } else {
+                this.cart.push({
+                    cartKey:      cartKey,
+                    id:           product.id + '-' + variant.sku,
+                    productId:    product.id,
+                    name:         product.name,
+                    variantLabel: variant.label,
+                    sku:          variant.sku,
+                    emoji:        product.emoji,
+                    price:        variant.price,
+                    maxStock:     variant.stock,
+                    qty:          1,
+                    _variant:     variant,
+                });
+            }
+            /* Flash the added card, then close */
+            this.variantModal.lastAdded = variant.sku;
+            if (idx !== undefined) this.variantModal.focusedIdx = idx;
+            toast(product.name + ' · ' + variant.label, 'success', 2000);
+            setTimeout(() => {
+                this.variantModal.lastAdded = null;
+                this.variantModal.open = false;
+                this.$nextTick(() => this.$refs.searchInput?.focus());
+            }, 420);
+        },
+
+        handleVariantKey(dir) {
+            const variants = this.variantModal.product?.variants || [];
+            if (!variants.length) return;
+            if (dir === 'enter') {
+                const v = variants[this.variantModal.focusedIdx];
+                if (v) this.selectVariant(this.variantModal.product, v, this.variantModal.focusedIdx);
+                return;
+            }
+            /* Find next/prev available (skips out-of-stock) */
+            let idx = this.variantModal.focusedIdx;
+            const step = dir === 'down' ? 1 : -1;
+            let tries = variants.length;
+            do {
+                idx = (idx + step + variants.length) % variants.length;
+                tries--;
+            } while (variants[idx].stock === 0 && tries > 0);
+            if (variants[idx].stock > 0) {
+                this.variantModal.focusedIdx = idx;
+                /* Scroll focused card into view */
+                this.$nextTick(() => {
+                    document.getElementById('variant-' + variants[idx].sku)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                });
+            }
+        },
+
+        /* ════════════════════════════════════════════════════════
            CART OPERATIONS
            ════════════════════════════════════════════════════════ */
         addToCart(product) {
+            /* Route variant products to modal */
+            if (product.variants) { this.openVariantModal(product); return; }
             if (product.stock === 0) {
                 toast('Out of stock: ' + product.name, 'error');
                 return;
             }
-            const existing = this.cart.find(i => i.id === product.id);
+            const cartKey = String(product.id);
+            const existing = this.cart.find(i => i.cartKey === cartKey);
             if (existing) {
-                const maxStock = this.allProducts.find(p => p.id === product.id)?.stock || 0;
-                if (existing.qty >= maxStock) {
+                if (existing.qty >= existing.maxStock) {
                     toast('Max stock reached for ' + product.name, 'warning');
                     return;
                 }
                 existing.qty++;
             } else {
-                this.cart.push({ ...product, qty: 1 });
+                this.cart.push({
+                    ...product,
+                    cartKey:  cartKey,
+                    maxStock: product.stock,
+                    qty:      1,
+                });
             }
             toast(product.name + ' added to cart', 'success', 1500);
         },
 
         removeFromCart(item) {
-            this.cart = this.cart.filter(i => i.id !== item.id);
-            toast(item.name + ' removed', 'info', 1800);
+            this.cart = this.cart.filter(i => i.cartKey !== item.cartKey);
+            toast(item.name + (item.variantLabel ? ' · ' + item.variantLabel : '') + ' removed', 'info', 1800);
         },
 
         increaseQty(item) {
-            const maxStock = this.allProducts.find(p => p.id === item.id)?.stock || 0;
-            if (item.qty >= maxStock) {
+            if (item.qty >= item.maxStock) {
                 toast('Max stock reached', 'warning', 1500);
                 return;
             }
@@ -1028,8 +1553,7 @@ function posScreen() {
         },
 
         clampQty(item) {
-            const maxStock = this.allProducts.find(p => p.id === item.id)?.stock || 1;
-            item.qty = Math.max(1, Math.min(item.qty || 1, maxStock));
+            item.qty = Math.max(1, Math.min(item.qty || 1, item.maxStock || 99));
         },
 
         promptClearCart() {
@@ -1121,27 +1645,105 @@ function posScreen() {
                 name: this.barcodeError || '', price: 0,
                 stock: 10, category: 'Accessories', emoji: '📦',
             };
+            this.quickAddModal.hasVariants        = false;
+            this.quickAddModal.attributes         = [{ name: 'Color', values: '' }, { name: 'Size', values: '' }];
+            this.quickAddModal.generatedVariants  = [];
             this.quickAddModal.open = true;
             this.$nextTick(() => this.$refs.quickAddName?.focus());
         },
 
+        /* Cartesian product → variant rows */
+        generateVariants() {
+            const attrs = this.quickAddModal.attributes
+                .filter(a => a.name.trim() && a.values.trim())
+                .map(a => ({
+                    name:   a.name.trim(),
+                    values: a.values.split(',').map(v => v.trim()).filter(Boolean),
+                }));
+            if (!attrs.length) return;
+
+            /* Cartesian product */
+            let combos = [[]];
+            for (const attr of attrs) {
+                combos = combos.flatMap(combo =>
+                    attr.values.map(val => [...combo, { axis: attr.name, value: val }])
+                );
+            }
+
+            /* Prefix from product name initial */
+            const prefix = (this.quickAddModal.form.name || 'VAR')
+                .toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+
+            this.quickAddModal.generatedVariants = combos.map((combo, i) => ({
+                label: combo.map(c => c.value).join(' / '),
+                sku:   prefix + '-' + combo.map(c => c.value.toUpperCase().replace(/\s+/g, '').slice(0, 3)).join('-'),
+                price: this.quickAddModal.form.price || 0,
+                stock: 10,
+                _axes: combo,
+            }));
+        },
+
         saveQuickProduct() {
             const f = this.quickAddModal.form;
-            if (!f.name || !f.price) return;
-            const newProduct = {
-                id:       Date.now(),
-                name:     f.name,
-                price:    parseFloat(f.price),
-                stock:    parseInt(f.stock) || 1,
-                category: f.category,
-                emoji:    f.emoji || '📦',
-                barcode:  null,
-            };
-            this.allProducts.push(newProduct);
-            this.quickAddModal.open = false;
-            this.barcodeError = null;
-            this.filterProducts();
-            this.addToCart(newProduct);
+            if (!f.name) return;
+
+            const baseId = Date.now();
+
+            if (this.quickAddModal.hasVariants) {
+                /* ── Variant product ── */
+                const variants = this.quickAddModal.generatedVariants;
+                if (!variants.length) return;
+                const axisNames = (this.quickAddModal.attributes)
+                    .filter(a => a.name.trim())
+                    .map(a => a.name.trim());
+
+                const newProduct = {
+                    id:          baseId,
+                    name:        f.name,
+                    price:       Math.min(...variants.map(v => v.price || 0)),
+                    stock:       999,
+                    category:    f.category,
+                    emoji:       f.emoji || '📦',
+                    barcode:     null,
+                    variantAxes: axisNames,
+                    variants:    variants.map(v => ({
+                        sku:      v.sku || ('SKU-' + Math.random().toString(36).slice(2, 6).toUpperCase()),
+                        label:    v.label,
+                        price:    parseFloat(v.price) || 0,
+                        stock:    parseInt(v.stock) || 0,
+                        /* color swatch support if axis contains 'color' */
+                        color:    v._axes?.find(a => a.axis.toLowerCase() === 'color')?.value || null,
+                        colorHex: null,
+                    })),
+                };
+                this.allProducts.push(newProduct);
+                this.quickAddModal.open = false;
+                this.barcodeError = null;
+                this.filterProducts();
+                toast(f.name + ' added with ' + variants.length + ' variants', 'success', 2500);
+                /* Open variant selector immediately */
+                this.openVariantModal(newProduct);
+
+            } else {
+                /* ── Simple product ── */
+                if (!f.price) return;
+                const newProduct = {
+                    id:       baseId,
+                    name:     f.name,
+                    price:    parseFloat(f.price),
+                    stock:    parseInt(f.stock) || 1,
+                    category: f.category,
+                    emoji:    f.emoji || '📦',
+                    barcode:  null,
+                    cartKey:  String(baseId),
+                    maxStock: parseInt(f.stock) || 1,
+                };
+                this.allProducts.push(newProduct);
+                this.quickAddModal.open = false;
+                this.barcodeError = null;
+                this.filterProducts();
+                this.addToCart(newProduct);
+            }
         },
 
         /* ════════════════════════════════════════════════════════

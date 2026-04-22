@@ -33,3 +33,25 @@ Route::get('/staff', function () {
 Route::get('/settings', function () {
     return view('pos.settings');
 })->name('settings');
+
+// ── Catalog (Global) ──────────────────────────────────────────
+Route::get('/categories', function () {
+    return view('pos.categories');
+})->name('categories');
+
+Route::get('/attributes', function () {
+    return view('pos.attributes');
+})->name('attributes');
+
+// ── Inventory (Branch-specific) ───────────────────────────────
+Route::get('/inventory/stock', function () {
+    return view('pos.inventory-stock');
+})->name('inventory.stock');
+
+Route::get('/inventory/adjustments', function () {
+    return view('pos.inventory-adjustments');
+})->name('inventory.adjustments');
+
+Route::get('/inventory/transfers', function () {
+    return view('pos.inventory-transfers');
+})->name('inventory.transfers');

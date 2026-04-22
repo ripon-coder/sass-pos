@@ -172,14 +172,183 @@
                 </div>
             </div>
 
+            {{-- ═══════════════════════════════════════════ --}}
+            {{-- CATALOG — Global Products (always Global)  --}}
+            {{-- ═══════════════════════════════════════════ --}}
+            <div>
+                {{-- Section header with animated Global badge --}}
+                <div class="flex items-center justify-between mb-1.5">
+                    <p class="nav-section-label !mb-0" x-show="sidebarOpen" x-cloak>Catalog</p>
+                    <span
+                        x-show="sidebarOpen"
+                        x-cloak
+                        class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wide uppercase bg-blue-50 text-blue-600 border border-blue-200/80"
+                    >
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse flex-shrink-0"></span>
+                        Global
+                    </span>
+                </div>
+                {{-- Collapsed: blue divider --}}
+                <div x-show="!sidebarOpen" class="w-full flex justify-center my-1.5">
+                    <div class="w-5 h-px bg-blue-200"></div>
+                </div>
+
+                <div class="space-y-0.5">
+                    {{-- Products — auto-switches to global context on click --}}
+                    <a
+                        href="/products"
+                        class="nav-link group relative {{ request()->is('products*') ? 'active' : '' }}"
+                        title="Global Products"
+                        @click.prevent="navigateGlobal('/products')"
+                        id="nav-products-link"
+                    >
+                        <span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r bg-blue-400 transition-opacity {{ request()->is('products*') ? 'opacity-100' : 'opacity-0 group-hover:opacity-50' }}"></span>
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                        <span class="truncate transition-all duration-200 flex-1" :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'">Products</span>
+                        {{-- Auto-switch hint badge shown only when in branch mode --}}
+                        <span
+                            x-show="sidebarOpen && currentContext !== 'global'"
+                            x-cloak
+                            class="flex-shrink-0 inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-semibold bg-blue-50 text-blue-500 border border-blue-200/80"
+                            title="Will auto-switch to Global context"
+                        >
+                            <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3"/></svg>
+                            Global
+                        </span>
+                    </a>
+
+                    {{-- Categories --}}
+                    <a
+                        href="/categories"
+                        class="nav-link group relative {{ request()->is('categories*') ? 'active' : '' }}"
+                        title="Categories"
+                        @click.prevent="navigateGlobal('/categories')"
+                        id="nav-categories-link"
+                    >
+                        <span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r bg-blue-400 transition-opacity {{ request()->is('categories*') ? 'opacity-100' : 'opacity-0 group-hover:opacity-50' }}"></span>
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+                        </svg>
+                        <span class="truncate transition-all duration-200 flex-1" :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'">Categories</span>
+                    </a>
+
+                    {{-- Attributes --}}
+                    <a
+                        href="/attributes"
+                        class="nav-link group relative {{ request()->is('attributes*') ? 'active' : '' }}"
+                        title="Attributes"
+                        @click.prevent="navigateGlobal('/attributes')"
+                        id="nav-attributes-link"
+                    >
+                        <span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r bg-blue-400 transition-opacity {{ request()->is('attributes*') ? 'opacity-100' : 'opacity-0 group-hover:opacity-50' }}"></span>
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
+                        </svg>
+                        <span class="truncate transition-all duration-200 flex-1" :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'">Attributes</span>
+                    </a>
+                </div>
+            </div>
+
+            {{-- ═══════════════════════════════════════════════════ --}}
+            {{-- INVENTORY — Branch-Specific (locked until branch)  --}}
+            {{-- ═══════════════════════════════════════════════════ --}}
+            <div>
+                {{-- Section header with dynamic Branch badge --}}
+                <div class="flex items-center justify-between mb-1.5">
+                    <p class="nav-section-label !mb-0" x-show="sidebarOpen" x-cloak>Inventory</p>
+                    <span
+                        x-show="sidebarOpen"
+                        x-cloak
+                        class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wide uppercase border transition-all duration-200"
+                        :class="currentContext === 'branch'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-slate-100 text-slate-400 border-slate-200'"
+                    >
+                        <span
+                            class="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors"
+                            :class="currentContext === 'branch' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'"
+                        ></span>
+                        <span x-text="currentContext === 'branch' ? (currentBranch?.name ?? 'Branch') : 'Branch'"></span>
+                    </span>
+                </div>
+                {{-- Collapsed: emerald divider --}}
+                <div x-show="!sidebarOpen" class="w-full flex justify-center my-1.5">
+                    <div class="w-5 h-px" :class="currentContext === 'branch' ? 'bg-emerald-300' : 'bg-slate-200'"></div>
+                </div>
+
+                <div class="space-y-0.5">
+                    {{-- UNLOCKED: Branch is selected → show inventory items --}}
+                    <template x-if="currentContext === 'branch'">
+                        <div class="space-y-0.5">
+                            <a href="/inventory/stock"
+                                class="nav-link group relative {{ request()->is('inventory/stock*') ? 'active' : '' }}"
+                                title="Stock Management"
+                                id="nav-stock-link"
+                            >
+                                <span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r bg-emerald-400 transition-opacity {{ request()->is('inventory/stock*') ? 'opacity-100' : 'opacity-0 group-hover:opacity-50' }}"></span>
+                                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                                </svg>
+                                <span class="truncate transition-all duration-200 flex-1" :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'">Stock</span>
+                            </a>
+                            <a href="/inventory/adjustments"
+                                class="nav-link group relative {{ request()->is('inventory/adjustments*') ? 'active' : '' }}"
+                                title="Adjustments"
+                                id="nav-adjustments-link"
+                            >
+                                <span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r bg-emerald-400 transition-opacity {{ request()->is('inventory/adjustments*') ? 'opacity-100' : 'opacity-0 group-hover:opacity-50' }}"></span>
+                                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="truncate transition-all duration-200 flex-1" :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'">Adjustments</span>
+                            </a>
+                            <a href="/inventory/transfers"
+                                class="nav-link group relative {{ request()->is('inventory/transfers*') ? 'active' : '' }}"
+                                title="Transfers"
+                                id="nav-transfers-link"
+                            >
+                                <span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r bg-emerald-400 transition-opacity {{ request()->is('inventory/transfers*') ? 'opacity-100' : 'opacity-0 group-hover:opacity-50' }}"></span>
+                                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                                </svg>
+                                <span class="truncate transition-all duration-200 flex-1" :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'">Transfers</span>
+                            </a>
+                        </div>
+                    </template>
+
+                    {{-- LOCKED: No branch selected → show gate prompt --}}
+                    <template x-if="currentContext !== 'branch'">
+                        <div
+                            class="rounded-lg border border-dashed border-slate-200 bg-slate-50/60 transition-colors"
+                            :class="sidebarOpen ? 'px-3 py-2.5 mx-0.5' : 'p-2 mx-0.5 flex justify-center'"
+                        >
+                            <div class="flex items-start gap-2" x-show="sidebarOpen" x-cloak>
+                                <div class="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[11px] font-semibold text-slate-500 leading-tight">Branch Inventory</p>
+                                    <p class="text-[10px] text-slate-400 leading-snug mt-0.5">Select a branch above to access Stock, Adjustments &amp; Transfers.</p>
+                                </div>
+                            </div>
+                            {{-- Collapsed icon only --}}
+                            <svg x-show="!sidebarOpen" class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
             {{-- MANAGEMENT --}}
             <div>
                 <p class="nav-section-label" x-show="sidebarOpen" x-cloak>Management</p>
                 <div class="space-y-0.5 mt-1">
-                    <a href="/products" class="nav-link {{ request()->is('products*') ? 'active' : '' }}" title="Products">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
-                        <span class="truncate transition-all duration-200" :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'">Products</span>
-                    </a>
                     <a href="/staff" class="nav-link {{ request()->is('staff*') ? 'active' : '' }}" title="Staff">
                         <svg fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" /></svg>
                         <span class="truncate transition-all duration-200" :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'">Staff</span>
@@ -438,15 +607,43 @@ function appShell() {
             localStorage.setItem('posContext', type);
             localStorage.setItem('posBranch', JSON.stringify(branch));
 
-            // Notify all child components (e.g. products page)
+            // Notify all child components
             window.dispatchEvent(new CustomEvent('context-changed', {
                 detail: { context: type, branch }
             }));
 
-            const label = type === 'global' ? 'Global Mode' : branch?.name + ' (Branch Mode)';
+            const label = type === 'global'
+                ? '🌐 Global Products'
+                : '🏪 ' + (branch?.name ?? 'Branch') + ' Inventory';
             window.dispatchEvent(new CustomEvent('show-toast', {
                 detail: { message: 'Switched to ' + label, type: type === 'global' ? 'info' : 'success', duration: 2500 }
             }));
+        },
+
+        /**
+         * Navigate to a Catalog (Global) page.
+         * If currently in branch mode, auto-switches to global first,
+         * shows a toast explaining the switch, then navigates.
+         */
+        navigateGlobal(url) {
+            if (this.currentContext !== 'global') {
+                // Silently switch to global
+                this.currentContext = 'global';
+                this.currentBranch = null;
+                localStorage.setItem('posContext', 'global');
+                localStorage.setItem('posBranch', 'null');
+                window.dispatchEvent(new CustomEvent('context-changed', {
+                    detail: { context: 'global', branch: null }
+                }));
+                window.dispatchEvent(new CustomEvent('show-toast', {
+                    detail: {
+                        message: '🌐 Switched to Global Products — product creation is always global.',
+                        type: 'info',
+                        duration: 3500
+                    }
+                }));
+            }
+            window.location.href = url;
         }
     };
 }

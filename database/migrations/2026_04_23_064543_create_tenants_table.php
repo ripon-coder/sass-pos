@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tenants', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('plan_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('plan_id')->constrained('plans')->cascadeOnDelete();
             $table->string('name');
             $table->string('domain')->unique();
             $table->boolean('is_active')->default(true);

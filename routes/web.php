@@ -30,6 +30,10 @@ Route::get('/staff', function () {
     return view('pos.staff');
 })->name('staff');
 
+Route::get('/login', function () {
+    return view('pos.login');
+})->name('login');
+
 Route::get('/settings', function () {
     return view('pos.settings');
 })->name('settings');
